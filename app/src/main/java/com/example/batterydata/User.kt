@@ -10,6 +10,6 @@ data class User(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val batterylevel:Float,
-    val timestamp:String,
+    val timestamp:Long,
     val pluggedstate:Int
 )

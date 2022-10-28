@@ -13,7 +13,7 @@ interface UserDao {
     fun getAll(): List<User>
 
     @Query("SELECT * FROM BatteryData WHERE timestamp BETWEEN :dateStart AND :dateEnd")
-    fun getDateResult(dateStart : String, dateEnd :String):List<User>
+    fun getDateResult(dateStart : Long, dateEnd :Long):List<User>
 
 
     @Insert

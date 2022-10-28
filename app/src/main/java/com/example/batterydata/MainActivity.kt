@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 
 
 class MainActivity : AppCompatActivity() {
-
     private var list_data:MutableList<Discharge>  = mutableListOf()
     private var counter_list:MutableList<Counter>  = mutableListOf()
 

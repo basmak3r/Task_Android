@@ -1,6 +1,5 @@
 package com.example.batterydata
 
-
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -13,19 +12,12 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.view.View
-import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.*
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.room.Room
 
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.*
 
 
 class BatteryReadService : Service() {
@@ -119,9 +111,9 @@ class BatteryReadService : Service() {
 
 
                 //Inserting to Db
-                val user=User(0,batLevel.toFloat(),LocalDateTime.now().toString(),plugvalue)
+                val user=User(0,batLevel.toFloat(),System.currentTimeMillis(),plugvalue)
                 db.userDao().insertAll(user)
-                Log.i("logdata", isCharging.toString() + batLevel.toString())
+                Log.i("logdata", isCharging.toString() + " "+ batLevel.toString()+ " " + System.currentTimeMillis())
             }
         }
     }

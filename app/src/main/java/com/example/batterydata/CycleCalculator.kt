@@ -5,37 +5,27 @@ import android.content.Context
 import androidx.room.Room
 import java.time.LocalDateTime
 import android.content.Intent
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.format.DateTimeFormatter
 
 
 class CycleCalculator {
-
     private lateinit var db:AppDatabase
     private var list_data:MutableList<Discharge>  = mutableListOf()
-    private fun StartandEnd(date:LocalDateTime):Pair<String,String>
+    private val hour:Long=3600000
+    private val half_hour:Long=1800000
+    private val Minutes:Long=60000
+    private var simpleDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+
+    private fun StartandEnd(date:Long):Pair<Long,Long>
     {
-        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:00:00.000");
-        var start=date.format(formatter)
-        var end=date.plusHours(1).format(formatter)
+        //Time Start in Indian Time 1970 Jan 1 05:30
+        var start=((date/hour)*hour)+half_hour
+        var end=date+hour
         return Pair( start,end)
-    }
-
-    private fun ConvertLocalDate(date:String):LocalDateTime
-    {
-        var date_convert=date
-        if(date_convert.length<23)
-            date_convert=date.substring(0,19)+".000"
-        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
-        var dateTime = LocalDateTime.parse(date_convert, formatter)
-        return dateTime
-    }
-
-    private fun timeDifference(date_1:LocalDateTime,date_2: LocalDateTime):Long
-    {
-        val timediff= Duration.between(LocalDateTime.from(date_1),LocalDateTime.from(date_2))
-        return timediff.toMillis()/1000;
     }
 
     public fun CycleCal(context:Context):MutableList<Discharge>
@@ -47,29 +37,26 @@ class CycleCalculator {
         ).allowMainThreadQueries().build()
 
         val users: List<User> = db.userDao().getAll()
-        var day_time= users[0].timestamp;
+        var dateTime= users[0].timestamp;
 
-        var dateTime=ConvertLocalDate(day_time)
         var temp_Datetime=dateTime
         var temp_charge=users[0].batterylevel
+
         var(starting_date,ending_date)=StartandEnd(dateTime)
-        dateTime=ConvertLocalDate(starting_date)
+        dateTime=starting_date
 
         while(true)
         {
             var(starting_date,ending_date)=StartandEnd(dateTime)
             val userDao = db.userDao().getDateResult(starting_date ,ending_date)
             var count=userDao.count();
+            Log.i("helo",count.toString())
 
             if(count>0)
             {
                 //Tim Fix
                 var initial_charge:Float=temp_charge
                 var initial_time=temp_Datetime
-
-//                var initial_charge: Float = userDao[0].batterylevel
-//                var initial_time =ConvertLocalDate( userDao[0].timestamp)
-
                 var charge = 0.00
                 var time :Long= 0
                 var timediff:Long=0
@@ -78,14 +65,14 @@ class CycleCalculator {
                 while(i<count)
                 {
                     var final_charge = userDao[i].batterylevel
-                    var final_time = ConvertLocalDate(userDao[i].timestamp)
+                    var final_time = userDao[i].timestamp
                     var plugged_state = userDao[i].pluggedstate
 
 
                     if (plugged_state == 0 && initial_charge!=final_charge)
                     {
                         charge += initial_charge - final_charge;
-                        timediff += timeDifference(initial_time,final_time)
+                        timediff += final_time-initial_time
                         initial_time = final_time;
                     }
 
@@ -96,29 +83,33 @@ class CycleCalculator {
                     initial_charge = final_charge;
                     i++
                 }
-                temp_Datetime= ConvertLocalDate(userDao[i-1].timestamp)
+                temp_Datetime= userDao[i-1].timestamp
                 temp_charge=userDao[i-1].batterylevel
 
-                time = timediff/60;
+                time = timediff/Minutes;
                 charge = charge;
                 if(time>60)
                     time=60
-                val list = Discharge(starting_date,charge,time);
+
+                var dateString = simpleDateFormat.format(starting_date)
+
+                val list = Discharge(dateString,charge,time);
                 list_data.add(list)
             }
             else
             {
                 // Shutdown Case
-                val list = Discharge(starting_date,0.00,0);
+                var dateString = simpleDateFormat.format(starting_date)
+                val list = Discharge(dateString,0.00,0);
                 list_data.add(list);
 
             }
-
-            if(dateTime.plusHours(1)>= LocalDateTime.now())
+            if(dateTime+hour>=System.currentTimeMillis())
             {
+
                 break;
             }
-            dateTime=dateTime.plusHours(1)
+            dateTime=dateTime+hour
 
 
         }
