@@ -50,7 +50,6 @@ class CycleCalculator {
             var(starting_date,ending_date)=StartandEnd(dateTime)
             val userDao = db.userDao().getDateResult(starting_date ,ending_date)
             var count=userDao.count();
-            Log.i("helo",count.toString())
 
             if(count>0)
             {
