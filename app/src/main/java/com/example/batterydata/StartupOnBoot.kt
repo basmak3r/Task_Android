@@ -3,15 +3,17 @@ package com.example.batterydata
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 
 
 class StartupOnBoot : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
-        val i = Intent(
-            context,
-            MainActivity::class.java
-        )
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(i)
+        Log.i("msg","msg")
+        context.startForegroundService(Intent(context, BatteryReadService::class.java))
+
+
     }
 }
